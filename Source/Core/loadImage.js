@@ -20,6 +20,15 @@ define([
         TrustedServers) {
     'use strict';
 
+    var transPng = 'data:image/png;base64,'+
+        'iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAMAAABrrFhUAAAAB3RJTUUH3QgIBToaSbAjlwAAABd0'+
+        'RVh0U29mdHdhcmUAR0xEUE5HIHZlciAzLjRxhaThAAAACHRwTkdHTEQzAAAAAEqAKR8AAAAEZ0FN'+
+        'QQAAsY8L/GEFAAAAA1BMVEX///+nxBvIAAAAAXRSTlMAQObYZgAAAFRJREFUeNrtwQEBAAAAgJD+'+
+        'r+4ICgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'+
+        'AAAAAAAAAAAAABgBDwABHHIJwwAAAABJRU5ErkJggg==';
+    var tileSize = 256;
+    var canvBase = '<canvas width="' + tileSize + '" height="' + tileSize + '" src="' + transPng + '"></canvas>';
+
     /**
      * Asynchronously loads the given image URL.  Returns a promise that will resolve to
      * an {@link Image} once loaded, or reject if the image failed to load.
@@ -84,7 +93,17 @@ define([
         var image = new Image();
 
         image.onload = function() {
-            deferred.resolve(image);
+            if (image.width != tileSize || image.height != tileSize) {
+                var tmp = document.createElement('div');
+                tmp.innerHTML = canvBase;
+                var tCanv = tmp.childNodes[0];
+                var ctx = tCanv.getContext('2d');
+                ctx.drawImage(image, 0, 0);
+                var dataUrl = tCanv.toDataURL();
+                image.src = dataUrl;
+            } else {
+                deferred.resolve(image);
+            }
         };
 
         image.onerror = function(e) {
